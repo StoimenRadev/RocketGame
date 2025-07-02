@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace RocketGame
@@ -9,15 +10,14 @@ namespace RocketGame
         {
             InitializeComponent();
 
-            
+
             this.FormBorderStyle = FormBorderStyle.None;
-            this.WindowState = FormWindowState.Maximized;
-            this.Bounds = Screen.PrimaryScreen.Bounds; // Ensures full screen on primary monitor
+            this.Bounds = Screen.PrimaryScreen.Bounds;
         }
 
         private void MainMenu_Load(object sender, EventArgs e)
         {
-            // Optional: Keep it here or leave empty if done in constructor
+            label1.TextAlign = ContentAlignment.TopCenter;
         }
 
         private void button1_Click(object sender, EventArgs e)
