@@ -110,5 +110,38 @@
   <ItemGroup>
     <None Include="Resources\main-menu.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\BackgroundForCosm.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\images.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\spaceship2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\spaceship21.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\spaceship3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\spaceship3-removebg-preview.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\katyusha-le-hawken-11x-removebg-preview.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\laser1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\asteroid1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\asteroid2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\asteroid3.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

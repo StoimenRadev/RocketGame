@@ -40,5 +40,14 @@ namespace RocketGame
             statisticsForm.Show();
             this.Hide();
         }
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to exit?", "Exit Game", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
     }
 }
