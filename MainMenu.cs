@@ -23,7 +23,7 @@ namespace RocketGame
         private void button1_Click(object sender, EventArgs e)
         {
             this.Hide();
-            Form gameScreen = new GameScreen();
+            Form gameScreen = new Form1();
             gameScreen.Show();
         }
 

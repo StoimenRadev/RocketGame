@@ -7,68 +7,224 @@ namespace RocketGame
 {
     public partial class Form1 : Form
     {
-        Random rand = new Random();
-        List<PictureBox> items = new List<PictureBox>();
-        Timer spawnTimer;
+        private PictureBox rocket;
+        private int rocketSpeed = 20;
+
+        private List<PictureBox> lasers = new List<PictureBox>();
+        private Timer laserTimer;
+        private Image laserImage;
+        private int laserSpeed = 50;
+
+        private DateTime lastShotTime = DateTime.MinValue;
+        private bool spacePressed = false;
+
+        private Random rand = new Random();
+        private Timer asteroidMovementTimer;
+        private Timer asteroidSpawnTimer;
+        private int spawnStep = 0;
+        private bool spawningAsteroids = false;
+        private List<PictureBox> currentAsteroids = new List<PictureBox>();
+
+        // Define dynamic spawn positions based on screen height
+        private int maxHeight;
+        private int[] topPositions;
+        private int[] middlePositions;
+        private int[] bottomPositions;
 
         public Form1()
         {
-            InitializeTimer();
+            InitializeComponent();
+            this.WindowState = FormWindowState.Maximized;
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.KeyPreview = true;
+
+            maxHeight = this.ClientSize.Height;
+            topPositions = new int[] { maxHeight / 6, maxHeight / 4 };
+            middlePositions = new int[] { maxHeight / 2 };
+            bottomPositions = new int[] { 2 * maxHeight / 3, maxHeight - 100 };
+
+            asteroidMovementTimer = new Timer();
+            asteroidMovementTimer.Interval = 16;
+            asteroidMovementTimer.Tick += AsteroidMovementTimer_Tick;
+            asteroidMovementTimer.Start();
+
+            asteroidSpawnTimer = new Timer();
+            asteroidSpawnTimer.Interval = 1000;
+            asteroidSpawnTimer.Tick += AsteroidSpawnTimer_Tick;
+
+            this.Load += GameScreen_Load;
+            this.KeyDown += GameScreen_KeyDown;
+            this.KeyUp += GameScreen_KeyUp;
         }
 
-        // Initialize the timer to spawn asteroids every 2 seconds
-        private void InitializeTimer()
+        private void GameScreen_Load(object sender, EventArgs e)
         {
-            spawnTimer = new Timer();
-            spawnTimer.Interval = 2000; // 2000 ms = 2 seconds
-            spawnTimer.Tick += TimerEvent;
-            spawnTimer.Start();
-        }
+            // Tile the background across the screen
+            this.BackgroundImage = Image.FromFile(@"C:\Users\pc1_26\Desktop\background.png");
+            this.BackgroundImageLayout = ImageLayout.Tile;
 
-        // Create a new asteroid and add it to the form
-        private void MakePictureBox()
-        {
-            PictureBox newPic = new PictureBox();
-            newPic.Height = 50;
-            newPic.Width = 50;
-            newPic.BackColor = Color.Gray; // Gray color for asteroids
-            newPic.Image = Properties.Resources.asteroid1; // Set your asteroid image resource
-            newPic.SizeMode = PictureBoxSizeMode.StretchImage;
+            // Rocket setup
+            rocket = new PictureBox
+            {
+                Size = new Size(100, 100),
+                Location = new Point(100, this.ClientSize.Height / 2 - 50),
+                BackColor = Color.Transparent
+            };
 
-            // Randomly choose one of the three fixed positions on the right side
-            int spawnPoint = rand.Next(1, 4); // Randomly choose from 1 to 3
-
-            switch (spawnPoint)
+            Image rocketImage;
+            switch (PlayerSettings.SelectedRocket)
             {
                 case 1:
-                    newPic.Location = new Point(this.ClientSize.Width - newPic.Width, 0); // Top-right
+                    rocketImage = Properties.Resources.katyusha_le_hawken_11x_removebg_preview;
                     break;
                 case 2:
-                    newPic.Location = new Point(this.ClientSize.Width - newPic.Width, this.ClientSize.Height / 2 - newPic.Height / 2); // Middle-right
+                    rocketImage = Properties.Resources.spaceship2;
                     break;
                 case 3:
-                    newPic.Location = new Point(this.ClientSize.Width - newPic.Width, this.ClientSize.Height - newPic.Height); // Bottom-right
+                    rocketImage = Properties.Resources.spaceship3;
+                    break;
+                default:
+                    rocketImage = Properties.Resources.katyusha_le_hawken_11x_removebg_preview;
                     break;
             }
 
-            // Add the new asteroid to the list and the form
-            items.Add(newPic);
-            newPic.Click += NewPic_Click; // Click event to remove the asteroid
-            this.Controls.Add(newPic);
+            rocketImage = (Image)rocketImage.Clone();
+            rocketImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            rocket.Image = rocketImage;
+            rocket.SizeMode = PictureBoxSizeMode.StretchImage;
+            Controls.Add(rocket);
+
+            // Laser setup
+            laserImage = (Image)Properties.Resources.laser1.Clone();
+            laserTimer = new Timer { Interval = 16 };
+            laserTimer.Tick += LaserTimer_Tick;
+            laserTimer.Start();
+
+            // Begin asteroid spawning cycle
+            spawningAsteroids = true;
+            asteroidSpawnTimer.Start();
         }
 
-        // Handle the click event to remove the asteroid from the form
-        private void NewPic_Click(object sender, EventArgs e)
+        private void GameScreen_KeyDown(object sender, KeyEventArgs e)
         {
-            PictureBox clickedPic = sender as PictureBox;
-            items.Remove(clickedPic);
-            this.Controls.Remove(clickedPic);
+            if (e.KeyCode == Keys.Up && rocket.Top - rocketSpeed >= 0)
+                rocket.Top -= rocketSpeed;
+            else if (e.KeyCode == Keys.Down && rocket.Bottom + rocketSpeed <= ClientSize.Height)
+                rocket.Top += rocketSpeed;
+            else if (e.KeyCode == Keys.Space && !spacePressed)
+            {
+                spacePressed = true;
+                if ((DateTime.Now - lastShotTime).TotalMilliseconds >= 1000)
+                {
+                    ShootLaser();
+                    lastShotTime = DateTime.Now;
+                }
+            }
         }
 
-        // Timer event that triggers asteroid spawning every 2 seconds
-        private void TimerEvent(object sender, EventArgs e)
+        private void GameScreen_KeyUp(object sender, KeyEventArgs e)
         {
-            MakePictureBox();
+            if (e.KeyCode == Keys.Space) spacePressed = false;
+        }
+
+        private void ShootLaser()
+        {
+            var laser = new PictureBox
+            {
+                Size = new Size(100, 20),
+                Image = laserImage,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent,
+                Location = new Point(rocket.Right - 10, rocket.Top + rocket.Height / 2 - 2)
+            };
+            lasers.Add(laser);
+            Controls.Add(laser);
+            laser.BringToFront();
+        }
+
+        private void LaserTimer_Tick(object sender, EventArgs e)
+        {
+            for (int i = lasers.Count - 1; i >= 0; i--)
+            {
+                lasers[i].Left += laserSpeed;
+                if (lasers[i].Left > ClientSize.Width)
+                {
+                    Controls.Remove(lasers[i]);
+                    lasers[i].Dispose();
+                    lasers.RemoveAt(i);
+                }
+            }
+        }
+        private void MakeAsteroid()
+        {
+            var asteroidImages = new List<Image>
+            {
+                Properties.Resources.asteroid1_removebg_preview,
+                Properties.Resources.asteroid2_removebg_preview,
+                Properties.Resources.asteroid3_removebg_preview
+            };
+
+            var available = new List<int>();
+            available.AddRange(topPositions);
+            available.AddRange(middlePositions);
+            available.AddRange(bottomPositions);
+
+            int idx = rand.Next(available.Count);
+            int y = available[idx];
+
+            var asteroid = new PictureBox
+            {
+                Tag = "asteroid",
+                Size = new Size(70, 64),
+                Image = (Image)asteroidImages[rand.Next(asteroidImages.Count)].Clone(),
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent,
+                Location = new Point(ClientSize.Width, y)
+            };
+
+            Controls.Add(asteroid);
+            currentAsteroids.Add(asteroid);
+        }
+
+        private void AsteroidSpawnTimer_Tick(object sender, EventArgs e)
+        {
+            if (spawningAsteroids)
+            {
+                if (spawnStep < 3)
+                {
+                    MakeAsteroid();
+                    spawnStep++;
+                }
+                else
+                {
+                    spawningAsteroids = false;
+                    asteroidSpawnTimer.Stop();
+                }
+            }
+        }
+
+        private void AsteroidMovementTimer_Tick(object sender, EventArgs e)
+        {
+            foreach (Control c in Controls)
+            {
+                if (c.Tag as string == "asteroid")
+                {
+                    c.Left -= 10;
+                    if (c.Left < -c.Width)
+                    {
+                        Controls.Remove(c);
+                        (c as PictureBox).Dispose();
+                        currentAsteroids.Remove(c as PictureBox);
+                    }
+                }
+            }
+
+            if (currentAsteroids.Count == 0 && !spawningAsteroids)
+            {
+                spawnStep = 0;
+                spawningAsteroids = true;
+                asteroidSpawnTimer.Start();
+            }
         }
     }
 }

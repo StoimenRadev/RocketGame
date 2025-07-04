@@ -73,6 +73,16 @@ namespace RocketGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap asteroid1_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("asteroid1-removebg-preview", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap asteroid2 {
             get {
                 object obj = ResourceManager.GetObject("asteroid2", resourceCulture);
@@ -83,9 +93,29 @@ namespace RocketGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap asteroid2_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("asteroid2-removebg-preview", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap asteroid3 {
             get {
                 object obj = ResourceManager.GetObject("asteroid3", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap asteroid3_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("asteroid3-removebg-preview", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -176,6 +206,16 @@ namespace RocketGame.Properties {
         internal static System.Drawing.Bitmap spaceship3_removebg_preview {
             get {
                 object obj = ResourceManager.GetObject("spaceship3-removebg-preview", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap spaceship3_removebg_preview__1_ {
+            get {
+                object obj = ResourceManager.GetObject("spaceship3-removebg-preview (1)", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
