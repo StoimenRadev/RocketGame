@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace RocketGame
@@ -25,7 +26,6 @@ namespace RocketGame
         private bool spawningAsteroids = false;
         private List<PictureBox> currentAsteroids = new List<PictureBox>();
 
-        // Define dynamic spawn positions based on screen height
         private int maxHeight;
         private int[] topPositions;
         private int[] middlePositions;
@@ -59,11 +59,6 @@ namespace RocketGame
 
         private void GameScreen_Load(object sender, EventArgs e)
         {
-            // Tile the background across the screen
-            this.BackgroundImage = Image.FromFile(@"C:\Users\pc1_26\Desktop\background.png");
-            this.BackgroundImageLayout = ImageLayout.Tile;
-
-            // Rocket setup
             rocket = new PictureBox
             {
                 Size = new Size(100, 100),
@@ -94,13 +89,11 @@ namespace RocketGame
             rocket.SizeMode = PictureBoxSizeMode.StretchImage;
             Controls.Add(rocket);
 
-            // Laser setup
             laserImage = (Image)Properties.Resources.laser1.Clone();
             laserTimer = new Timer { Interval = 16 };
             laserTimer.Tick += LaserTimer_Tick;
             laserTimer.Start();
 
-            // Begin asteroid spawning cycle
             spawningAsteroids = true;
             asteroidSpawnTimer.Start();
         }
@@ -155,6 +148,7 @@ namespace RocketGame
                 }
             }
         }
+
         private void MakeAsteroid()
         {
             var asteroidImages = new List<Image>
@@ -219,6 +213,8 @@ namespace RocketGame
                 }
             }
 
+            CheckCollision();
+
             if (currentAsteroids.Count == 0 && !spawningAsteroids)
             {
                 spawnStep = 0;
@@ -226,5 +222,30 @@ namespace RocketGame
                 asteroidSpawnTimer.Start();
             }
         }
+
+        private void CheckCollision()
+        {
+            foreach (var asteroid in currentAsteroids.ToList())
+            {
+                if (rocket.Bounds.IntersectsWith(asteroid.Bounds))
+                {
+                    EndGame();
+                    break;
+                }
+            }
+        }
+
+        private void EndGame()
+        {
+            asteroidMovementTimer.Stop();
+            asteroidSpawnTimer.Stop();
+            laserTimer.Stop();
+
+            GameOver gameOverForm = new GameOver();
+            gameOverForm.Show();
+            this.Close();
+        }
+
+        private void Form1_Load(object sender, EventArgs e) { }
     }
 }
