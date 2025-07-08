@@ -62,12 +62,12 @@ namespace RocketGame
         {
             if (selectedRocketIndex == -1)
             {
-                MessageBox.Show("Please select a rocket first.");
+                MessageBox.Show("Please select a spaceship first.");
                 return;
             }
 
             PlayerSettings.SelectedRocket = selectedRocketIndex;
-            MessageBox.Show("Rocket saved!");
+            MessageBox.Show("Spaceship saved!");
             
         }
 

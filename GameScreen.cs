@@ -1,6 +1,4 @@
-﻿// Add this code to your Form1.cs
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -26,9 +24,6 @@ namespace RocketGame
         private bool spawningAsteroids = false;
         private List<PictureBox> currentAsteroids = new List<PictureBox>();
         private int maxHeight;
-        private int[] topPositions;
-        private int[] middlePositions;
-        private int[] bottomPositions;
         private int scoreLabelHeight;
         private int score = 0;
         private Timer scoreTimer;
@@ -41,6 +36,7 @@ namespace RocketGame
         private bool ufoAlive = false;
         private Image ufoImage;
         private Image ufoLaserImage;
+        private int ufoYPosition;
 
         public Form1()
         {
@@ -55,7 +51,7 @@ namespace RocketGame
             asteroidMovementTimer.Tick += AsteroidMovementTimer_Tick;
             asteroidMovementTimer.Start();
 
-            asteroidSpawnTimer = new Timer { Interval = 1 };
+            asteroidSpawnTimer = new Timer { Interval = 1000 };
             asteroidSpawnTimer.Tick += AsteroidSpawnTimer_Tick;
 
             this.Load += GameScreen_Load;
@@ -65,21 +61,15 @@ namespace RocketGame
 
         private void GameScreen_Load(object sender, EventArgs e)
         {
-            rocket = new PictureBox
-            {
-                Size = new Size(120, 100),
-                Location = new Point(100, this.ClientSize.Height / 2 - 50),
-                BackColor = Color.Transparent
-            };
-            Image rocketImage = Properties.Resources.katyusha_le_hawken_11x_removebg_preview;
-            rocketImage = (Image)rocketImage.Clone();
-            rocketImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
-            rocket.Image = rocketImage;
-            rocket.SizeMode = PictureBoxSizeMode.StretchImage;
-            Controls.Add(rocket);
+            // Initialize the rocket
+            ResetRocket();
 
+            // Load Laser Image from Resources
             laserImage = (Image)Properties.Resources.laser1.Clone();
-            laserTimer = new Timer { Interval = 16 };
+
+            // Timer for moving lasers
+            laserTimer = new Timer();
+            laserTimer.Interval = 16; // 60 FPS (1000ms / 60 = 16.67ms per frame)
             laserTimer.Tick += LaserTimer_Tick;
             laserTimer.Start();
 
@@ -105,17 +95,13 @@ namespace RocketGame
             scoreTimer.Start();
 
             scoreLabelHeight = scoreLabel.Height;
-            int adjustedHeight = this.ClientSize.Height - scoreLabelHeight;
-            topPositions = new int[] { scoreLabelHeight + 100 };
-            middlePositions = new int[] { adjustedHeight / 2 };
-            bottomPositions = new int[] { 2 * adjustedHeight / 3, adjustedHeight - 100 };
 
             spawningAsteroids = true;
             asteroidSpawnTimer.Start();
 
             ufoImage = Properties.Resources.ufo_removebg_preview;
             ufoLaserImage = Properties.Resources.laser2_removebg_preview;
-            ufoSpawnTimer = new Timer { Interval = 10000 };
+            ufoSpawnTimer = new Timer { Interval = 15000 };
             ufoSpawnTimer.Tick += UfoSpawnTimer_Tick;
             ufoSpawnTimer.Start();
 
@@ -126,22 +112,75 @@ namespace RocketGame
             ufoShootingTimer.Tick += UfoShootingTimer_Tick;
         }
 
+        private void ResetRocket()
+        {
+            // Remove the old rocket if it exists
+            if (rocket != null)
+            {
+                Controls.Remove(rocket);
+                rocket.Dispose();
+            }
+
+            // Create a new rocket
+            rocket = new PictureBox();
+            rocket.Size = new Size(100, 100);
+            rocket.Location = new Point(100, this.ClientSize.Height / 2 - 50);
+            rocket.BackColor = Color.Transparent;
+
+            Image rocketImage;
+
+            // Set the image of the rocket based on selected rocket
+            switch (PlayerSettings.SelectedRocket)
+            {
+                case 1:
+                    rocketImage = (Image)Properties.Resources.katyusha_le_hawken_11x_removebg_preview.Clone();
+                    break;
+                case 2:
+                    rocketImage = (Image)Properties.Resources.spaceship2.Clone();
+                    break;
+                case 3:
+                    rocketImage = (Image)Properties.Resources.spaceship3_removebg_preview.Clone();
+                    break;
+                default:
+                    rocketImage = (Image)Properties.Resources.katyusha_le_hawken_11x_removebg_preview.Clone();
+                    break;
+            }
+
+            rocketImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            rocket.Image = rocketImage;
+            rocket.SizeMode = PictureBoxSizeMode.StretchImage;
+            this.Controls.Add(rocket);
+        }
+
         private void MakeAsteroid()
         {
+            int[] possiblePositions = new int[]
+            {
+                scoreLabelHeight + 100,  // Top position
+                this.ClientSize.Height / 2, // Middle position
+                2 * this.ClientSize.Height / 3, // Bottom position
+                this.ClientSize.Height - 100 // Near bottom position
+            };
+
+            // Select a random position for the asteroid
+            int selectedPosition = possiblePositions[rand.Next(possiblePositions.Length)];
+
+            // Prevent spawning at the same position if another asteroid is already there
+            bool positionOccupied = currentAsteroids.Any(a => Math.Abs(a.Top - selectedPosition) < a.Height);
+
+            // If the position is occupied, retry until we find a free spot
+            if (positionOccupied)
+            {
+                MakeAsteroid();  // Recursive call to retry
+                return;
+            }
+
             var asteroidImages = new List<Image>
             {
                 Properties.Resources.asteroid1_removebg_preview,
                 Properties.Resources.asteroid2_removebg_preview,
                 Properties.Resources.asteroid3_removebg_preview
             };
-
-            var available = new List<int>();
-            available.AddRange(topPositions);
-            available.AddRange(middlePositions);
-            available.AddRange(bottomPositions);
-
-            int idx = rand.Next(available.Count);
-            int y = available[idx];
 
             var asteroid = new PictureBox
             {
@@ -150,7 +189,7 @@ namespace RocketGame
                 Image = (Image)asteroidImages[rand.Next(asteroidImages.Count)].Clone(),
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 BackColor = Color.Transparent,
-                Location = new Point(ClientSize.Width, y)
+                Location = new Point(ClientSize.Width, selectedPosition) // Set asteroid at random position
             };
 
             Controls.Add(asteroid);
@@ -180,7 +219,7 @@ namespace RocketGame
             {
                 if (c.Tag as string == "asteroid")
                 {
-                    c.Left -= 10;
+                    c.Left -= 30;
                     if (c.Left < -c.Width)
                     {
                         Controls.Remove(c);
@@ -201,8 +240,8 @@ namespace RocketGame
         private void UfoSpawnTimer_Tick(object sender, EventArgs e)
         {
             if (ufoAlive) return;
-            int[] allPositions = topPositions.Concat(middlePositions).Concat(bottomPositions).ToArray();
-            int y = allPositions[rand.Next(allPositions.Length)];
+
+            ufoYPosition = rand.Next(0, this.ClientSize.Height - 130); // Random UFO Y position
 
             ufo = new PictureBox
             {
@@ -211,27 +250,17 @@ namespace RocketGame
                 BackColor = Color.Transparent,
                 Image = (Image)ufoImage.Clone(),
                 SizeMode = PictureBoxSizeMode.StretchImage,
-                Location = new Point(ClientSize.Width, y)
+                Location = new Point(ClientSize.Width, ufoYPosition)
             };
             Controls.Add(ufo);
             ufoAlive = true;
             ufoMovementTimer.Start();
-
-            var stopTimer = new Timer { Interval = 5000 };
-            stopTimer.Tick += (s, args) =>
-            {
-                ufoMovementTimer.Stop();
-                ufoShootingTimer.Start();
-                stopTimer.Stop();
-                stopTimer.Dispose();
-            };
-            stopTimer.Start();
         }
 
         private void UfoMovementTimer_Tick(object sender, EventArgs e)
         {
             if (ufo != null && ufo.Left > 0)
-                ufo.Left -= 20;
+                ufo.Left -= 15;
         }
 
         private void UfoShootingTimer_Tick(object sender, EventArgs e)
@@ -253,7 +282,7 @@ namespace RocketGame
                 var laserTimer = new Timer { Interval = 16 };
                 laserTimer.Tick += (s, args) =>
                 {
-                    ufoLaser.Left -= 50;
+                    ufoLaser.Left -= 100;
                     if (ufoLaser.Right < 0)
                     {
                         laserTimer.Stop();
@@ -312,6 +341,10 @@ namespace RocketGame
             ufoSpawnTimer.Stop();
             ufoMovementTimer.Stop();
             ufoShootingTimer.Stop();
+
+            // Reset the rocket when the game ends
+            ResetRocket();
+
             GameOver go = new GameOver();
             go.Show();
             this.Close();
@@ -358,7 +391,7 @@ namespace RocketGame
         {
             for (int i = lasers.Count - 1; i >= 0; i--)
             {
-                lasers[i].Left += laserSpeed;
+                lasers[i].Left += 100;
                 if (lasers[i].Left > ClientSize.Width)
                 {
                     Controls.Remove(lasers[i]);
