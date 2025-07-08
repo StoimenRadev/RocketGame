@@ -9,17 +9,16 @@ namespace RocketGame
     public partial class Form1 : Form
     {
         private PictureBox rocket;
-        private int rocketSpeed = 20;
+        private int rocketSpeed = 35;
         private List<PictureBox> lasers = new List<PictureBox>();
         private Timer laserTimer;
         private Image laserImage;
-        private int laserSpeed = 50;
+        private int laserSpeed = 80;
         private DateTime lastShotTime = DateTime.MinValue;
         private bool spacePressed = false;
         private Random rand = new Random();
         private Timer asteroidMovementTimer;
         private Timer asteroidSpawnTimer;
-        private int spawnStep = 0;
         private bool spawningAsteroids = false;
         private List<PictureBox> currentAsteroids = new List<PictureBox>();
         private int maxHeight;
@@ -27,6 +26,10 @@ namespace RocketGame
         private int[] middlePositions;
         private int[] bottomPositions;
         private int scoreLabelHeight;
+
+        private int score = 0;
+        private Timer scoreTimer;
+        private Label scoreLabel;
 
         public Form1()
         {
@@ -36,13 +39,6 @@ namespace RocketGame
             this.KeyPreview = true;
 
             maxHeight = this.ClientSize.Height;
-            scoreLabelHeight = label1.Height;
-
-            int adjustedHeight = maxHeight - scoreLabelHeight;
-
-            topPositions = new int[] { scoreLabelHeight + 100 };
-            middlePositions = new int[] { adjustedHeight / 2 };
-            bottomPositions = new int[] { 2 * adjustedHeight / 3, adjustedHeight - 100 };
 
             asteroidMovementTimer = new Timer();
             asteroidMovementTimer.Interval = 16;
@@ -50,10 +46,9 @@ namespace RocketGame
             asteroidMovementTimer.Start();
 
             asteroidSpawnTimer = new Timer();
-            asteroidSpawnTimer.Interval = 1000;
+            asteroidSpawnTimer.Interval = 1;
             asteroidSpawnTimer.Tick += AsteroidSpawnTimer_Tick;
 
-            // Only needed if not wired in designer
             this.Load += GameScreen_Load;
             this.KeyDown += GameScreen_KeyDown;
             this.KeyUp += GameScreen_KeyUp;
@@ -61,7 +56,6 @@ namespace RocketGame
 
         private void GameScreen_Load(object sender, EventArgs e)
         {
-            // Prevent rocket from spawning more than once
             if (rocket != null) return;
 
             rocket = new PictureBox
@@ -99,11 +93,54 @@ namespace RocketGame
             laserTimer.Tick += LaserTimer_Tick;
             laserTimer.Start();
 
+            // Score Label
+            scoreLabel = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Arial", 24, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Text = "Score: 0",
+                Location = new Point(this.ClientSize.Width - 220, 20),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            Controls.Add(scoreLabel);
+            scoreLabel.BringToFront();
+
+            // Score Timer
+            scoreTimer = new Timer();
+            scoreTimer.Interval = 1000;
+            scoreTimer.Tick += ScoreTimer_Tick;
+            scoreTimer.Start();
+
+            // Asteroid Positions
+            scoreLabelHeight = scoreLabel.Height;
+            int adjustedHeight = this.ClientSize.Height - scoreLabelHeight;
+            topPositions = new int[] { scoreLabelHeight + 100 };
+            middlePositions = new int[] { adjustedHeight / 2 };
+            bottomPositions = new int[] { 2 * adjustedHeight / 3, adjustedHeight - 100 };
+
             spawningAsteroids = true;
             asteroidSpawnTimer.Start();
         }
 
-        private void MakeAsteroid()
+        private void ScoreTimer_Tick(object sender, EventArgs e)
+        {
+            score++;
+            scoreLabel.Text = $"Score: {score}";
+        }
+
+        private void AsteroidSpawnTimer_Tick(object sender, EventArgs e)
+        {
+            if (spawningAsteroids)
+            {
+                MakeAsteroidWave();
+                spawningAsteroids = false;
+                asteroidSpawnTimer.Stop();
+            }
+        }
+
+        private void MakeAsteroidWave()
         {
             var asteroidImages = new List<Image>
             {
@@ -112,42 +149,32 @@ namespace RocketGame
                 Properties.Resources.asteroid3_removebg_preview
             };
 
-            var available = new List<int>();
-            available.AddRange(topPositions);
-            available.AddRange(middlePositions);
-            available.AddRange(bottomPositions);
+            // Combine and shuffle Y positions
+            List<int> yPositions = new List<int>();
+            yPositions.AddRange(topPositions);
+            yPositions.AddRange(middlePositions);
+            yPositions.AddRange(bottomPositions);
+            yPositions = yPositions.OrderBy(x => rand.Next()).ToList();
 
-            int idx = rand.Next(available.Count);
-            int y = available[idx];
+            // Horizontal offsets (1 ahead, 2 behind randomly)
+            int baseX = this.ClientSize.Width;
+            int[] xOffsets = new int[] { 0, rand.Next(100, 200), rand.Next(200, 400) };
+            xOffsets = xOffsets.OrderBy(x => rand.Next()).ToArray();
 
-            var asteroid = new PictureBox
+            for (int i = 0; i < 3; i++)
             {
-                Tag = "asteroid",
-                Size = new Size(70, 64),
-                Image = (Image)asteroidImages[rand.Next(asteroidImages.Count)].Clone(),
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                BackColor = Color.Transparent,
-                Location = new Point(ClientSize.Width, y)
-            };
-
-            Controls.Add(asteroid);
-            currentAsteroids.Add(asteroid);
-        }
-
-        private void AsteroidSpawnTimer_Tick(object sender, EventArgs e)
-        {
-            if (spawningAsteroids)
-            {
-                if (spawnStep < 3)
+                var asteroid = new PictureBox
                 {
-                    MakeAsteroid();
-                    spawnStep++;
-                }
-                else
-                {
-                    spawningAsteroids = false;
-                    asteroidSpawnTimer.Stop();
-                }
+                    Tag = "asteroid",
+                    Size = new Size(70, 64),
+                    Image = (Image)asteroidImages[rand.Next(asteroidImages.Count)].Clone(),
+                    SizeMode = PictureBoxSizeMode.StretchImage,
+                    BackColor = Color.Transparent,
+                    Location = new Point(baseX + xOffsets[i], yPositions[i])
+                };
+
+                Controls.Add(asteroid);
+                currentAsteroids.Add(asteroid);
             }
         }
 
@@ -171,7 +198,6 @@ namespace RocketGame
 
             if (currentAsteroids.Count == 0 && !spawningAsteroids)
             {
-                spawnStep = 0;
                 spawningAsteroids = true;
                 asteroidSpawnTimer.Start();
             }
@@ -194,6 +220,7 @@ namespace RocketGame
             asteroidMovementTimer.Stop();
             asteroidSpawnTimer.Stop();
             laserTimer.Stop();
+            scoreTimer.Stop();
 
             GameOver gameOverForm = new GameOver();
             gameOverForm.Show();
@@ -219,7 +246,8 @@ namespace RocketGame
 
         private void GameScreen_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Space) spacePressed = false;
+            if (e.KeyCode == Keys.Space)
+                spacePressed = false;
         }
 
         private void ShootLaser()
