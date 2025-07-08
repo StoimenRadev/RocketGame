@@ -10,26 +10,23 @@ namespace RocketGame
     {
         private PictureBox rocket;
         private int rocketSpeed = 20;
-
         private List<PictureBox> lasers = new List<PictureBox>();
         private Timer laserTimer;
         private Image laserImage;
         private int laserSpeed = 50;
-
         private DateTime lastShotTime = DateTime.MinValue;
         private bool spacePressed = false;
-
         private Random rand = new Random();
         private Timer asteroidMovementTimer;
         private Timer asteroidSpawnTimer;
         private int spawnStep = 0;
         private bool spawningAsteroids = false;
         private List<PictureBox> currentAsteroids = new List<PictureBox>();
-
         private int maxHeight;
         private int[] topPositions;
         private int[] middlePositions;
         private int[] bottomPositions;
+        private int scoreLabelHeight;
 
         public Form1()
         {
@@ -39,9 +36,13 @@ namespace RocketGame
             this.KeyPreview = true;
 
             maxHeight = this.ClientSize.Height;
-            topPositions = new int[] { maxHeight / 6, maxHeight / 4 };
-            middlePositions = new int[] { maxHeight / 2 };
-            bottomPositions = new int[] { 2 * maxHeight / 3, maxHeight - 100 };
+            scoreLabelHeight = label1.Height;
+
+            int adjustedHeight = maxHeight - scoreLabelHeight;
+
+            topPositions = new int[] { scoreLabelHeight + 100 };
+            middlePositions = new int[] { adjustedHeight / 2 };
+            bottomPositions = new int[] { 2 * adjustedHeight / 3, adjustedHeight - 100 };
 
             asteroidMovementTimer = new Timer();
             asteroidMovementTimer.Interval = 16;
@@ -52,6 +53,7 @@ namespace RocketGame
             asteroidSpawnTimer.Interval = 1000;
             asteroidSpawnTimer.Tick += AsteroidSpawnTimer_Tick;
 
+            // Only needed if not wired in designer
             this.Load += GameScreen_Load;
             this.KeyDown += GameScreen_KeyDown;
             this.KeyUp += GameScreen_KeyUp;
@@ -59,9 +61,12 @@ namespace RocketGame
 
         private void GameScreen_Load(object sender, EventArgs e)
         {
+            // Prevent rocket from spawning more than once
+            if (rocket != null) return;
+
             rocket = new PictureBox
             {
-                Size = new Size(100, 100),
+                Size = new Size(120, 100),
                 Location = new Point(100, this.ClientSize.Height / 2 - 50),
                 BackColor = Color.Transparent
             };
@@ -96,57 +101,6 @@ namespace RocketGame
 
             spawningAsteroids = true;
             asteroidSpawnTimer.Start();
-        }
-
-        private void GameScreen_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Up && rocket.Top - rocketSpeed >= 0)
-                rocket.Top -= rocketSpeed;
-            else if (e.KeyCode == Keys.Down && rocket.Bottom + rocketSpeed <= ClientSize.Height)
-                rocket.Top += rocketSpeed;
-            else if (e.KeyCode == Keys.Space && !spacePressed)
-            {
-                spacePressed = true;
-                if ((DateTime.Now - lastShotTime).TotalMilliseconds >= 1000)
-                {
-                    ShootLaser();
-                    lastShotTime = DateTime.Now;
-                }
-            }
-        }
-
-        private void GameScreen_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Space) spacePressed = false;
-        }
-
-        private void ShootLaser()
-        {
-            var laser = new PictureBox
-            {
-                Size = new Size(100, 20),
-                Image = laserImage,
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                BackColor = Color.Transparent,
-                Location = new Point(rocket.Right - 10, rocket.Top + rocket.Height / 2 - 2)
-            };
-            lasers.Add(laser);
-            Controls.Add(laser);
-            laser.BringToFront();
-        }
-
-        private void LaserTimer_Tick(object sender, EventArgs e)
-        {
-            for (int i = lasers.Count - 1; i >= 0; i--)
-            {
-                lasers[i].Left += laserSpeed;
-                if (lasers[i].Left > ClientSize.Width)
-                {
-                    Controls.Remove(lasers[i]);
-                    lasers[i].Dispose();
-                    lasers.RemoveAt(i);
-                }
-            }
         }
 
         private void MakeAsteroid()
@@ -246,6 +200,55 @@ namespace RocketGame
             this.Close();
         }
 
-        private void Form1_Load(object sender, EventArgs e) { }
+        private void GameScreen_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up && rocket.Top - rocketSpeed >= scoreLabelHeight)
+                rocket.Top -= rocketSpeed;
+            else if (e.KeyCode == Keys.Down && rocket.Bottom + rocketSpeed <= ClientSize.Height)
+                rocket.Top += rocketSpeed;
+            else if (e.KeyCode == Keys.Space && !spacePressed)
+            {
+                spacePressed = true;
+                if ((DateTime.Now - lastShotTime).TotalMilliseconds >= 1000)
+                {
+                    ShootLaser();
+                    lastShotTime = DateTime.Now;
+                }
+            }
+        }
+
+        private void GameScreen_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space) spacePressed = false;
+        }
+
+        private void ShootLaser()
+        {
+            var laser = new PictureBox
+            {
+                Size = new Size(100, 20),
+                Image = laserImage,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent,
+                Location = new Point(rocket.Right - 10, rocket.Top + rocket.Height / 2 - 2)
+            };
+            lasers.Add(laser);
+            Controls.Add(laser);
+            laser.BringToFront();
+        }
+
+        private void LaserTimer_Tick(object sender, EventArgs e)
+        {
+            for (int i = lasers.Count - 1; i >= 0; i--)
+            {
+                lasers[i].Left += laserSpeed;
+                if (lasers[i].Left > ClientSize.Width)
+                {
+                    Controls.Remove(lasers[i]);
+                    lasers[i].Dispose();
+                    lasers.RemoveAt(i);
+                }
+            }
+        }
     }
 }

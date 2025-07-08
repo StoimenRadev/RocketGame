@@ -38,7 +38,7 @@
             this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label1.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.label1.Location = new System.Drawing.Point(94, 35);
+            this.label1.Location = new System.Drawing.Point(1250, 1);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(131, 39);
             this.label1.TabIndex = 3;
@@ -51,7 +51,7 @@
             this.Controls.Add(this.label1);
             this.ForeColor = System.Drawing.Color.Black;
             this.Name = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
+            this.Load += new System.EventHandler(this.GameScreen_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

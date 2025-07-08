@@ -183,6 +183,16 @@ namespace RocketGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap laser2_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("laser2-removebg-preview", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap main_menu {
             get {
                 object obj = ResourceManager.GetObject("main-menu", resourceCulture);
@@ -236,6 +246,16 @@ namespace RocketGame.Properties {
         internal static System.Drawing.Bitmap spaceship3_removebg_preview__1_ {
             get {
                 object obj = ResourceManager.GetObject("spaceship3-removebg-preview (1)", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap ufo_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("ufo-removebg-preview", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
