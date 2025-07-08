@@ -71,6 +71,7 @@ namespace RocketGame
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Name = "GameOver";
+            this.Load += new System.EventHandler(this.GameOver_Load_1);
             this.ResumeLayout(false);
 
         }

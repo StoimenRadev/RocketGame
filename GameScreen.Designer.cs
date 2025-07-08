@@ -33,7 +33,7 @@
             // Form1
             // 
             this.BackgroundImage = global::RocketGame.Properties.Resources.background;
-            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.ClientSize = new System.Drawing.Size(1662, 730);
             this.Name = "Form1";
             this.ResumeLayout(false);
 

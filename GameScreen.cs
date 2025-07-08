@@ -18,6 +18,9 @@ namespace RocketGame
         private bool spacePressed = false;
         private Random rand = new Random();
 
+        private PictureBox heart;
+
+
         private Timer asteroidMovementTimer;
         private Timer asteroidSpawnTimer;
         private int spawnStep = 0;

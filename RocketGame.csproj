@@ -176,5 +176,8 @@
   <ItemGroup>
     <None Include="Resources\ufo-removebg-preview.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\heart-removebg-preview.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

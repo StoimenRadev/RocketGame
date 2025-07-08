@@ -27,5 +27,10 @@ namespace RocketGame
             gameScreen.Show();
             this.Close();
         }
+
+        private void GameOver_Load_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }
