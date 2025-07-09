@@ -39,9 +39,17 @@ namespace RocketGame
         private Image ufoLaserImage;
         private int ufoYPosition;
 
+        int asteroidsDodged = 0;
+        int lasersFired = 0;
+        int enemiesDestroyed = 0;
+        int survivalTime = 0;
+        int gamesPlayed = 0;
+        int highScore = 0;
+
 
         private Timer shieldTimer; // Timer for the shield
         private bool shieldActive = false;
+        private int ufoDestroyedThisGame;
 
         public Form1()
         {
@@ -274,7 +282,7 @@ namespace RocketGame
                     }
                 };
                 laserTimer.Start();
-                
+
             }
         }
 
@@ -314,6 +322,8 @@ namespace RocketGame
                     Controls.Remove(laser);
                     lasers.Remove(laser);
                     laser.Dispose();
+
+                    ufoDestroyedThisGame++;
                 }
             }
         }
@@ -328,6 +338,14 @@ namespace RocketGame
             ufoMovementTimer.Stop();
             ufoShootingTimer.Stop();
             ResetRocket();
+            Statistics.GamesPlayed++;
+
+            if (score > Statistics.HighestScore)
+                Statistics.HighestScore = score;
+
+            Statistics.TotalUFOsDestroyed += ufoDestroyedThisGame;
+
+            Statistics.Save();
             GameOver go = new GameOver();
             go.Show();
             this.Close();
@@ -551,5 +569,7 @@ namespace RocketGame
                 rocket.BackColor = Color.Transparent;
             }
         }
+
+
     }
 }
