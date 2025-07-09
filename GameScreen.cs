@@ -21,7 +21,6 @@ namespace RocketGame
         private PictureBox heart;
         private Timer asteroidMovementTimer;
         private Timer asteroidSpawnTimer;
-        private int spawnStep = 0;
         private bool spawningAsteroids = false;
         private List<PictureBox> currentAsteroids = new List<PictureBox>();
         private int maxHeight;
@@ -38,7 +37,9 @@ namespace RocketGame
         private Image ufoImage;
         private Image ufoLaserImage;
         private int ufoYPosition;
-        private DateTime ufoMovementStartTime;
+
+        private Timer shieldTimer; // Timer for the shield
+        private bool shieldActive = false;
 
         public Form1()
         {
@@ -46,6 +47,7 @@ namespace RocketGame
             this.WindowState = FormWindowState.Maximized;
             this.FormBorderStyle = FormBorderStyle.None;
             this.KeyPreview = true;
+
 
             maxHeight = this.ClientSize.Height;
 
@@ -56,6 +58,9 @@ namespace RocketGame
             asteroidSpawnTimer = new Timer { Interval = 1000 };
             asteroidSpawnTimer.Tick += AsteroidSpawnTimer_Tick;
 
+            shieldTimer = new Timer { Interval = 3000 }; // 1 second interval
+            shieldTimer.Tick += ShieldTimer_Tick;
+
             this.Load += GameScreen_Load;
             this.KeyDown += GameScreen_KeyDown;
             this.KeyUp += GameScreen_KeyUp;
@@ -65,10 +70,10 @@ namespace RocketGame
         {
             ResetRocket();
             laserImage = (Image)Properties.Resources.laser1.Clone();
-
             laserTimer = new Timer { Interval = 16 };
             laserTimer.Tick += LaserTimer_Tick;
             laserTimer.Start();
+
 
             scoreLabel = new Label
             {
@@ -104,65 +109,13 @@ namespace RocketGame
             ufoMovementTimer = new Timer { Interval = 16 };
             ufoMovementTimer.Tick += UfoMovementTimer_Tick;
 
-            ufoShootingTimer = new Timer { Interval = 6000 };
+            ufoShootingTimer = new Timer { Interval = 7000 };
             ufoShootingTimer.Tick += UfoShootingTimer_Tick;
+
         }
 
-        private void ResetRocket()
+        private void MakeAsteroidAtPosition(int selectedPosition)
         {
-            if (rocket != null)
-            {
-                Controls.Remove(rocket);
-                rocket.Dispose();
-            }
-
-            rocket = new PictureBox();
-            rocket.Size = new Size(100, 100);
-            rocket.Location = new Point(100, this.ClientSize.Height / 2 - 50);
-            rocket.BackColor = Color.Transparent;
-
-            Image rocketImage;
-            switch (PlayerSettings.SelectedRocket)
-            {
-                case 1:
-                    rocketImage = (Image)Properties.Resources.katyusha_le_hawken_11x_removebg_preview.Clone();
-                    break;
-                case 2:
-                    rocketImage = (Image)Properties.Resources.spaceship2.Clone();
-                    break;
-                case 3:
-                    rocketImage = (Image)Properties.Resources.spaceship3_removebg_preview.Clone();
-                    break;
-                default:
-                    rocketImage = (Image)Properties.Resources.katyusha_le_hawken_11x_removebg_preview.Clone();
-                    break;
-            }
-
-            rocketImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
-            rocket.Image = rocketImage;
-            rocket.SizeMode = PictureBoxSizeMode.StretchImage;
-            this.Controls.Add(rocket);
-        }
-
-        private void MakeAsteroid()
-        {
-            int[] possiblePositions = new int[]
-            {
-                scoreLabelHeight + 100,
-                this.ClientSize.Height / 2,
-                2 * this.ClientSize.Height / 3,
-                this.ClientSize.Height - 100
-            };
-
-            int selectedPosition = possiblePositions[rand.Next(possiblePositions.Length)];
-            bool positionOccupied = currentAsteroids.Any(a => Math.Abs(a.Top - selectedPosition) < a.Height);
-
-            if (positionOccupied)
-            {
-                MakeAsteroid();
-                return;
-            }
-
             var asteroidImages = new List<Image>
             {
                 Properties.Resources.asteroid1_removebg_preview,
@@ -186,19 +139,58 @@ namespace RocketGame
 
         private void AsteroidSpawnTimer_Tick(object sender, EventArgs e)
         {
-            if (spawningAsteroids)
+            if (!spawningAsteroids) return;
+
+            int[] possiblePositions = new int[]
             {
-                if (spawnStep < 3)
+                scoreLabelHeight + 100,
+                this.ClientSize.Height / 2,
+                2 * this.ClientSize.Height / 3,
+                this.ClientSize.Height - 100
+            };
+
+            List<int> blockedPositions = new List<int>();
+            if (ufoAlive && ufo != null)
+            {
+                foreach (int pos in possiblePositions)
                 {
-                    MakeAsteroid();
-                    spawnStep++;
-                }
-                else
-                {
-                    spawningAsteroids = false;
-                    asteroidSpawnTimer.Stop();
+                    int ufoCenter = ufo.Top + ufo.Height / 2;
+                    if (Math.Abs(pos - ufoCenter) < 120)
+                        blockedPositions.Add(pos);
                 }
             }
+
+            var availablePositions = possiblePositions.Except(blockedPositions).ToList();
+
+            if (ufoAlive)
+            {
+                var safePositions = availablePositions
+                    .Where(p => !currentAsteroids.Any(a => Math.Abs(a.Top - p) < a.Height))
+                    .OrderBy(x => rand.Next())
+                    .Take(2)
+                    .ToList();
+
+                foreach (var pos in safePositions)
+                    MakeAsteroidAtPosition(pos);
+            }
+            else
+            {
+                int asteroidsSpawned = 0;
+                var shuffled = availablePositions.OrderBy(x => rand.Next()).ToList();
+
+                foreach (var pos in shuffled)
+                {
+                    if (asteroidsSpawned >= 3) break;
+                    if (!currentAsteroids.Any(a => Math.Abs(a.Top - pos) < a.Height))
+                    {
+                        MakeAsteroidAtPosition(pos);
+                        asteroidsSpawned++;
+                    }
+                }
+            }
+
+            spawningAsteroids = false;
+            asteroidSpawnTimer.Stop();
         }
 
         private void AsteroidMovementTimer_Tick(object sender, EventArgs e)
@@ -210,6 +202,7 @@ namespace RocketGame
                     c.Left -= 27;
                     if (c.Left < -c.Width)
                     {
+                        Console.WriteLine("Asteroid removed");
                         Controls.Remove(c);
                         (c as PictureBox).Dispose();
                         currentAsteroids.Remove(c as PictureBox);
@@ -219,7 +212,6 @@ namespace RocketGame
             CheckCollision();
             if (currentAsteroids.Count == 0 && !spawningAsteroids)
             {
-                spawnStep = 0;
                 spawningAsteroids = true;
                 asteroidSpawnTimer.Start();
             }
@@ -228,9 +220,7 @@ namespace RocketGame
         private void UfoSpawnTimer_Tick(object sender, EventArgs e)
         {
             if (ufoAlive) return;
-
             ufoYPosition = rand.Next(0, this.ClientSize.Height - 130);
-
             ufo = new PictureBox
             {
                 Tag = "ufo",
@@ -242,29 +232,15 @@ namespace RocketGame
             };
             Controls.Add(ufo);
             ufoAlive = true;
-
-            ufoMovementStartTime = DateTime.Now;
             ufoMovementTimer.Start();
-            ufoShootingTimer.Start();
         }
 
         private void UfoMovementTimer_Tick(object sender, EventArgs e)
         {
-            if (ufo == null) return;
-
-            TimeSpan elapsed = DateTime.Now - ufoMovementStartTime;
-
-            if (elapsed.TotalSeconds < 6)
-            {
-                if (ufo.Left > 0)
-                {
-                    ufo.Left -= 8;
-                }
-            }
+            if (ufo != null && ufo.Left > this.ClientSize.Width - 500)
+                ufo.Left -= 5;
             else
-            {
                 ufoMovementTimer.Stop();
-            }
         }
 
         private void UfoShootingTimer_Tick(object sender, EventArgs e)
@@ -303,15 +279,21 @@ namespace RocketGame
         {
             foreach (Control c in Controls)
             {
+                // If the shield is active, prevent collision detection
+                if (shieldActive) return;
+
                 if (c.Tag as string == "ufoLaser" && rocket.Bounds.IntersectsWith(c.Bounds))
-                    EndGame();
+                {
+                    SimulateHeartClick();
+                }
             }
 
             foreach (var asteroid in currentAsteroids.ToList())
             {
                 if (rocket.Bounds.IntersectsWith(asteroid.Bounds))
                 {
-                    EndGame();
+                    asteroid.Visible = false;
+                    SimulateHeartClick();
                     break;
                 }
             }
@@ -322,13 +304,11 @@ namespace RocketGame
                 {
                     score += 10;
                     scoreLabel.Text = $"Score: {score}";
-
                     Controls.Remove(ufo);
                     ufo.Dispose();
                     ufo = null;
                     ufoAlive = false;
                     ufoShootingTimer.Stop();
-
                     Controls.Remove(laser);
                     lasers.Remove(laser);
                     laser.Dispose();
@@ -345,12 +325,43 @@ namespace RocketGame
             ufoSpawnTimer.Stop();
             ufoMovementTimer.Stop();
             ufoShootingTimer.Stop();
-
             ResetRocket();
-
             GameOver go = new GameOver();
             go.Show();
             this.Close();
+        }
+
+        private void ResetRocket()
+        {
+            if (rocket != null)
+            {
+                Controls.Remove(rocket);
+                rocket.Dispose();
+            }
+            rocket = new PictureBox();
+            rocket.Size = new Size(100, 100);
+            rocket.Location = new Point(100, this.ClientSize.Height / 2 - 50);
+            rocket.BackColor = Color.Transparent;
+            Image rocketImage;
+            switch (PlayerSettings.SelectedRocket)
+            {
+                case 1:
+                    rocketImage = (Image)Properties.Resources.katyusha_le_hawken_11x_removebg_preview.Clone();
+                    break;
+                case 2:
+                    rocketImage = (Image)Properties.Resources.spaceship2.Clone();
+                    break;
+                case 3:
+                    rocketImage = (Image)Properties.Resources.spaceship3_removebg_preview.Clone();
+                    break;
+                default:
+                    rocketImage = (Image)Properties.Resources.katyusha_le_hawken_11x_removebg_preview.Clone();
+                    break;
+            }
+            rocketImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            rocket.Image = rocketImage;
+            rocket.SizeMode = PictureBoxSizeMode.StretchImage;
+            this.Controls.Add(rocket);
         }
 
         private void GameScreen_KeyDown(object sender, KeyEventArgs e)
@@ -403,7 +414,143 @@ namespace RocketGame
                 }
             }
         }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Initialize anything that should be set when the form loads
+        }
 
-        private void Form1_Load(object sender, EventArgs e) { }
+        private void pictureBox9_Click(object sender, EventArgs e)
+        {
+            if (pictureBox9.Visible)
+            {
+                bool collisionDetected = false;
+
+                foreach (var asteroid in currentAsteroids.ToList())
+                {
+                    if (rocket.Bounds.IntersectsWith(asteroid.Bounds))
+                    {
+                        collisionDetected = true;
+                        break;
+                    }
+                }
+
+                if (!collisionDetected)
+                {
+                    foreach (Control c in Controls)
+                    {
+                        if (c.Tag as string == "ufoLaser" && rocket.Bounds.IntersectsWith(c.Bounds))
+                        {
+                            collisionDetected = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (collisionDetected)
+                {
+                    pictureBox9.Visible = false; // Disappear
+                }
+            }
+        }
+
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+            if (pictureBox8.Visible)
+            {
+                bool collisionDetected = false;
+
+                foreach (var asteroid in currentAsteroids.ToList())
+                {
+                    if (rocket.Bounds.IntersectsWith(asteroid.Bounds))
+                    {
+                        collisionDetected = true;
+                        break;
+                    }
+                }
+
+                if (!collisionDetected)
+                {
+                    foreach (Control c in Controls)
+                    {
+                        if (c.Tag as string == "ufoLaser" && rocket.Bounds.IntersectsWith(c.Bounds))
+                        {
+                            collisionDetected = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (collisionDetected)
+                {
+                    pictureBox8.Visible = false; // Disappear
+                }
+            }
+        }
+
+        private void pictureBox7_Click(object sender, EventArgs e)
+        {
+            bool collisionDetected = false;
+
+            foreach (var asteroid in currentAsteroids.ToList())
+            {
+                if (rocket.Bounds.IntersectsWith(asteroid.Bounds))
+                {
+                    collisionDetected = true;
+                    break;
+                }
+            }
+
+            if (!collisionDetected)
+            {
+                foreach (Control c in Controls)
+                {
+                    if (c.Tag as string == "ufoLaser" && rocket.Bounds.IntersectsWith(c.Bounds))
+                    {
+                        collisionDetected = true;
+                        break;
+                    }
+                }
+            }
+
+            if (collisionDetected)
+            {
+                EndGame(); // Send to Game Over menu
+            }
+        }
+        private void SimulateHeartClick()
+        {
+            if (shieldActive) return; // Skip if the shield is active
+
+            if (pictureBox9.Visible)
+            {
+                pictureBox9_Click(pictureBox9, EventArgs.Empty);
+            }
+            else if (pictureBox8.Visible)
+            {
+                pictureBox8_Click(pictureBox8, EventArgs.Empty);
+            }
+            else if (pictureBox7.Visible)
+            {
+                pictureBox7_Click(pictureBox7, EventArgs.Empty);
+            }
+
+            // Activate the shield for 3 seconds
+            shieldActive = true;
+            rocket.BackColor = Color.Transparent; // Optionally change rocket's color to indicate shield
+            shieldTimer.Start();
+        }
+
+        private void ShieldTimer_Tick(object sender, EventArgs e)
+        {
+            // Check if the shield is active
+            if (shieldActive)
+            {
+                // After 3 seconds, deactivate the shield
+                shieldTimer.Stop();
+                shieldActive = false;
+                // Optionally, change the rocket's appearance back to normal
+                rocket.BackColor = Color.Transparent;
+            }
+        }
     }
 }
