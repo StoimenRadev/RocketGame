@@ -331,6 +331,7 @@ namespace RocketGame
             GameOver go = new GameOver();
             go.Show();
             this.Close();
+
         }
 
         private void ResetRocket()

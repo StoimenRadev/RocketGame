@@ -34,12 +34,7 @@ namespace RocketGame
             cosmeticsForm.Show();
         }
 
-        private void button3_Click(object sender, EventArgs e)
-        {
-            StatisticsForm statisticsForm = new StatisticsForm();
-            statisticsForm.Show();
-            this.Hide();
-        }
+        
 
         private void button4_Click_1(object sender, EventArgs e)
         {
@@ -48,6 +43,13 @@ namespace RocketGame
             {
                 Application.Exit();
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Form statisticsForm = new StatisticsForm();
+            statisticsForm.Show();
+            this.Hide();
         }
     }
 }
