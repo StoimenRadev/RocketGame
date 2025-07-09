@@ -19,8 +19,6 @@ namespace RocketGame
         private Random rand = new Random();
 
         private PictureBox heart;
-
-
         private Timer asteroidMovementTimer;
         private Timer asteroidSpawnTimer;
         private int spawnStep = 0;
@@ -40,6 +38,7 @@ namespace RocketGame
         private Image ufoImage;
         private Image ufoLaserImage;
         private int ufoYPosition;
+        private DateTime ufoMovementStartTime;
 
         public Form1()
         {
@@ -64,15 +63,10 @@ namespace RocketGame
 
         private void GameScreen_Load(object sender, EventArgs e)
         {
-            // Initialize the rocket
             ResetRocket();
-
-            // Load Laser Image from Resources
             laserImage = (Image)Properties.Resources.laser1.Clone();
 
-            // Timer for moving lasers
-            laserTimer = new Timer();
-            laserTimer.Interval = 16; // 60 FPS (1000ms / 60 = 16.67ms per frame)
+            laserTimer = new Timer { Interval = 16 };
             laserTimer.Tick += LaserTimer_Tick;
             laserTimer.Start();
 
@@ -98,7 +92,6 @@ namespace RocketGame
             scoreTimer.Start();
 
             scoreLabelHeight = scoreLabel.Height;
-
             spawningAsteroids = true;
             asteroidSpawnTimer.Start();
 
@@ -108,31 +101,27 @@ namespace RocketGame
             ufoSpawnTimer.Tick += UfoSpawnTimer_Tick;
             ufoSpawnTimer.Start();
 
-            ufoMovementTimer = new Timer { Interval = 64 };
+            ufoMovementTimer = new Timer { Interval = 16 };
             ufoMovementTimer.Tick += UfoMovementTimer_Tick;
 
-            ufoShootingTimer = new Timer { Interval = 7000 };
+            ufoShootingTimer = new Timer { Interval = 6000 };
             ufoShootingTimer.Tick += UfoShootingTimer_Tick;
         }
 
         private void ResetRocket()
         {
-            // Remove the old rocket if it exists
             if (rocket != null)
             {
                 Controls.Remove(rocket);
                 rocket.Dispose();
             }
 
-            // Create a new rocket
             rocket = new PictureBox();
             rocket.Size = new Size(100, 100);
             rocket.Location = new Point(100, this.ClientSize.Height / 2 - 50);
             rocket.BackColor = Color.Transparent;
 
             Image rocketImage;
-
-            // Set the image of the rocket based on selected rocket
             switch (PlayerSettings.SelectedRocket)
             {
                 case 1:
@@ -159,22 +148,18 @@ namespace RocketGame
         {
             int[] possiblePositions = new int[]
             {
-                scoreLabelHeight + 100,  // Top position
-                this.ClientSize.Height / 2, // Middle position
-                2 * this.ClientSize.Height / 3, // Bottom position
-                this.ClientSize.Height - 100 // Near bottom position
+                scoreLabelHeight + 100,
+                this.ClientSize.Height / 2,
+                2 * this.ClientSize.Height / 3,
+                this.ClientSize.Height - 100
             };
 
-            // Select a random position for the asteroid
             int selectedPosition = possiblePositions[rand.Next(possiblePositions.Length)];
-
-            // Prevent spawning at the same position if another asteroid is already there
             bool positionOccupied = currentAsteroids.Any(a => Math.Abs(a.Top - selectedPosition) < a.Height);
 
-            // If the position is occupied, retry until we find a free spot
             if (positionOccupied)
             {
-                MakeAsteroid();  // Recursive call to retry
+                MakeAsteroid();
                 return;
             }
 
@@ -192,7 +177,7 @@ namespace RocketGame
                 Image = (Image)asteroidImages[rand.Next(asteroidImages.Count)].Clone(),
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 BackColor = Color.Transparent,
-                Location = new Point(ClientSize.Width, selectedPosition) // Set asteroid at random position
+                Location = new Point(ClientSize.Width, selectedPosition)
             };
 
             Controls.Add(asteroid);
@@ -222,7 +207,7 @@ namespace RocketGame
             {
                 if (c.Tag as string == "asteroid")
                 {
-                    c.Left -= 30;
+                    c.Left -= 27;
                     if (c.Left < -c.Width)
                     {
                         Controls.Remove(c);
@@ -244,7 +229,7 @@ namespace RocketGame
         {
             if (ufoAlive) return;
 
-            ufoYPosition = rand.Next(0, this.ClientSize.Height - 130); // Random UFO Y position
+            ufoYPosition = rand.Next(0, this.ClientSize.Height - 130);
 
             ufo = new PictureBox
             {
@@ -257,13 +242,29 @@ namespace RocketGame
             };
             Controls.Add(ufo);
             ufoAlive = true;
+
+            ufoMovementStartTime = DateTime.Now;
             ufoMovementTimer.Start();
+            ufoShootingTimer.Start();
         }
 
         private void UfoMovementTimer_Tick(object sender, EventArgs e)
         {
-            if (ufo != null && ufo.Left > 0)
-                ufo.Left -= 15;
+            if (ufo == null) return;
+
+            TimeSpan elapsed = DateTime.Now - ufoMovementStartTime;
+
+            if (elapsed.TotalSeconds < 6)
+            {
+                if (ufo.Left > 0)
+                {
+                    ufo.Left -= 8;
+                }
+            }
+            else
+            {
+                ufoMovementTimer.Stop();
+            }
         }
 
         private void UfoShootingTimer_Tick(object sender, EventArgs e)
@@ -345,7 +346,6 @@ namespace RocketGame
             ufoMovementTimer.Stop();
             ufoShootingTimer.Stop();
 
-            // Reset the rocket when the game ends
             ResetRocket();
 
             GameOver go = new GameOver();
@@ -403,5 +403,7 @@ namespace RocketGame
                 }
             }
         }
+
+        private void Form1_Load(object sender, EventArgs e) { }
     }
 }
