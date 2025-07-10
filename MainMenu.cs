@@ -51,6 +51,13 @@ namespace RocketGame
             statisticsForm.Show();
             this.Hide();
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Form optionsForm = new OptionsForm();
+            optionsForm.Show();
+            this.Hide();
+        }
     }
 
 

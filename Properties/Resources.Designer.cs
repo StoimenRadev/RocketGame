@@ -133,6 +133,16 @@ namespace RocketGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap background_options {
+            get {
+                object obj = ResourceManager.GetObject("background-options", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap BackgroundForCosm {
             get {
                 object obj = ResourceManager.GetObject("BackgroundForCosm", resourceCulture);
