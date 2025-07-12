@@ -44,9 +44,10 @@
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.button1.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.button1.Location = new System.Drawing.Point(582, 334);
+            this.button1.Location = new System.Drawing.Point(436, 271);
+            this.button1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(169, 83);
+            this.button1.Size = new System.Drawing.Size(127, 67);
             this.button1.TabIndex = 0;
             this.button1.Text = "Save";
             this.button1.UseVisualStyleBackColor = false;
@@ -58,9 +59,10 @@
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.button2.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.button2.Location = new System.Drawing.Point(53, 334);
+            this.button2.Location = new System.Drawing.Point(40, 271);
+            this.button2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(197, 83);
+            this.button2.Size = new System.Drawing.Size(148, 67);
             this.button2.TabIndex = 1;
             this.button2.Text = "Return";
             this.button2.UseVisualStyleBackColor = false;
@@ -70,10 +72,13 @@
             // 
             this.trackBar1.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.trackBar1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.trackBar1.Location = new System.Drawing.Point(422, 109);
+            this.trackBar1.Location = new System.Drawing.Point(316, 89);
+            this.trackBar1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.trackBar1.Maximum = 5;
             this.trackBar1.Name = "trackBar1";
-            this.trackBar1.Size = new System.Drawing.Size(183, 56);
+            this.trackBar1.Size = new System.Drawing.Size(137, 45);
             this.trackBar1.TabIndex = 2;
+            this.trackBar1.Value = 5;
             // 
             // label1
             // 
@@ -82,9 +87,10 @@
             this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label1.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.label1.Location = new System.Drawing.Point(177, 109);
+            this.label1.Location = new System.Drawing.Point(133, 89);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(121, 39);
+            this.label1.Size = new System.Drawing.Size(97, 31);
             this.label1.TabIndex = 3;
             this.label1.Text = "Sound";
             // 
@@ -95,9 +101,10 @@
             this.label2.BackColor = System.Drawing.Color.Transparent;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label2.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.label2.Location = new System.Drawing.Point(177, 223);
+            this.label2.Location = new System.Drawing.Point(133, 181);
+            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(127, 39);
+            this.label2.Size = new System.Drawing.Size(106, 31);
             this.label2.TabIndex = 4;
             this.label2.Text = "Effects";
             // 
@@ -109,25 +116,28 @@
             this.checkBox1.Checked = true;
             this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.checkBox1.Location = new System.Drawing.Point(461, 235);
+            this.checkBox1.Location = new System.Drawing.Point(346, 191);
+            this.checkBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(18, 17);
+            this.checkBox1.Size = new System.Drawing.Size(15, 14);
             this.checkBox1.TabIndex = 5;
             this.checkBox1.UseVisualStyleBackColor = false;
             // 
             // GeneralOptionsForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::RocketGame.Properties.Resources.background_options;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(600, 366);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
+            this.DoubleBuffered = true;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "GeneralOptionsForm";
             this.Text = "GeneralOptionsForm";
             this.Load += new System.EventHandler(this.GeneralOptionsForm_Load);

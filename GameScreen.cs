@@ -51,6 +51,8 @@ namespace RocketGame
         private bool shieldActive = false;
         private int ufoDestroyedThisGame;
 
+
+
         public Form1()
         {
             InitializeComponent();
@@ -330,6 +332,7 @@ namespace RocketGame
 
         private void EndGame()
         {
+            // Stop all active timers
             asteroidMovementTimer.Stop();
             asteroidSpawnTimer.Stop();
             laserTimer.Stop();
@@ -337,20 +340,30 @@ namespace RocketGame
             ufoSpawnTimer.Stop();
             ufoMovementTimer.Stop();
             ufoShootingTimer.Stop();
+            shieldTimer.Stop();
+
+            // Reset rocket position and dispose any remaining objects
             ResetRocket();
             Statistics.GamesPlayed++;
 
+            // Update the highest score if the current score is higher
             if (score > Statistics.HighestScore)
                 Statistics.HighestScore = score;
 
+            // Update the total UFOs destroyed counter
             Statistics.TotalUFOsDestroyed += ufoDestroyedThisGame;
 
+            // Save statistics to file or database
             Statistics.Save();
+
+            // Show the game over screen
             GameOver go = new GameOver();
             go.Show();
-            this.Close();
 
+            // Close the current form and stop the game
+            this.Close(); // This will close the Form1 window entirely
         }
+
 
         private void ResetRocket()
         {
@@ -400,7 +413,13 @@ namespace RocketGame
                     lastShotTime = DateTime.Now;
                 }
             }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                PauseGame();
+                
+            }
         }
+
 
         private void GameScreen_KeyUp(object sender, KeyEventArgs e)
         {
@@ -535,12 +554,12 @@ namespace RocketGame
 
             if (collisionDetected)
             {
-                EndGame(); // Send to Game Over menu
+                EndGame();
             }
         }
         private void SimulateHeartClick()
         {
-            if (shieldActive) return; // Skip if the shield is active
+            if (shieldActive) return;
 
             if (pictureBox9.Visible)
             {
@@ -570,7 +589,53 @@ namespace RocketGame
             }
         }
 
+        private void PauseGame()
+        {
+            asteroidMovementTimer.Stop();
+            asteroidSpawnTimer.Stop();
+            laserTimer.Stop();
+            scoreTimer.Stop();
+            ufoSpawnTimer.Stop();
+            ufoMovementTimer.Stop();
+            ufoShootingTimer.Stop();
+            shieldTimer.Stop();
 
+            PauseMenu pauseMenu = new PauseMenu();
+
+            pauseMenu.FormClosed += (s, e) =>
+            {
+                if (pauseMenu.ReturnToMainMenuRequested)
+                {
+                    asteroidMovementTimer.Stop();
+                    if (spawningAsteroids) asteroidSpawnTimer.Stop();
+                    laserTimer.Stop();
+                    scoreTimer.Stop();
+                    ufoSpawnTimer.Stop();
+                    if (ufo != null && ufo.Left > this.ClientSize.Width - 500)
+                        ufoMovementTimer.Stop();
+                    if (ufoAlive) ufoShootingTimer.Stop();
+                    if (shieldActive) shieldTimer.Stop();
+                    this.Close();
+
+                    Application.Exit();
+                    MainMenu mainMenu = new MainMenu();
+                    mainMenu.Show();
+                }
+                else if (pauseMenu.ResumeRequested)
+                {
+                    asteroidMovementTimer.Start();
+                    if (spawningAsteroids) asteroidSpawnTimer.Start();
+                    laserTimer.Start();
+                    scoreTimer.Start();
+                    ufoSpawnTimer.Start();
+                    if (ufo != null && ufo.Left > this.ClientSize.Width - 500)
+                        ufoMovementTimer.Start();
+                    if (ufoAlive) ufoShootingTimer.Start();
+                    if (shieldActive) shieldTimer.Start();
+                }
+            };
+            pauseMenu.ShowDialog();
+        }
     }
 }   
 
