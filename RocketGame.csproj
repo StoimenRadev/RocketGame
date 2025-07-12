@@ -221,5 +221,8 @@
   <ItemGroup>
     <None Include="Resources\background-options.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\astronaut-removebg-preview.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -38,6 +38,7 @@ namespace RocketGame
         private Image ufoImage;
         private Image ufoLaserImage;
         private int ufoYPosition;
+        private Timer astronautSpawnTimer;
 
         int asteroidsDodged = 0;
         int lasersFired = 0;
@@ -45,6 +46,7 @@ namespace RocketGame
         int survivalTime = 0;
         int gamesPlayed = 0;
         int highScore = 0;
+        int astronautsSaved = 0;
 
 
         private Timer shieldTimer; // Timer for the shield
@@ -62,6 +64,10 @@ namespace RocketGame
 
 
             maxHeight = this.ClientSize.Height;
+
+            astronautSpawnTimer = new Timer { Interval = 30000 }; // 30 seconds interval
+            astronautSpawnTimer.Tick += AstronautSpawnTimer_Tick;
+            astronautSpawnTimer.Start();
 
             asteroidMovementTimer = new Timer { Interval = 16 };
             asteroidMovementTimer.Tick += AsteroidMovementTimer_Tick;
@@ -126,6 +132,10 @@ namespace RocketGame
 
         }
 
+        private void AstronautSpawnTimer_Tick(object sender, EventArgs e)
+        {
+            SpawnAstronaut();
+        }
         private void MakeAsteroid()
         {
             int[] possiblePositions = new int[]
@@ -635,7 +645,62 @@ namespace RocketGame
                 }
             };
             pauseMenu.ShowDialog();
+            scoreTimer.Tick += (s, e2) =>
+            {
+                score++;
+                scoreLabel.Text = $"Score: {score}";
+
+                // Spawn astronaut when score is 50
+                if (score == 50)
+                {
+                    SpawnAstronaut();
+                }
+            };
+
+            
         }
+
+        private void SpawnAstronaut()
+        {
+            // Create astronaut object
+            PictureBox astronaut = new PictureBox
+            {
+                Size = new Size(70, 70),
+                BackColor = Color.Transparent,
+                Image = Properties.Resources.astronaut_removebg_preview, // Replace with your astronaut image
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Location = new Point(ClientSize.Width, rand.Next(scoreLabelHeight + 100, ClientSize.Height - 100)) // Random vertical position
+            };
+
+            astronaut.BringToFront();
+            Controls.Add(astronaut);
+
+            // Set the movement of astronaut (move left)
+            Timer astronautTimer = new Timer { Interval = 16 }; // 60 FPS movement
+            astronautTimer.Tick += (sender, e) =>
+            {
+                astronaut.Left -= 20; 
+                astronaut.Invalidate();
+
+                if (astronaut.Left < -astronaut.Width)
+                {
+                    astronautTimer.Stop();
+                    Controls.Remove(astronaut);
+                    astronaut.Dispose();
+                }
+
+                if (rocket.Bounds.IntersectsWith(astronaut.Bounds))
+                {
+                    astronautTimer.Stop();
+                    Controls.Remove(astronaut);
+                    astronaut.Dispose();
+                    Statistics.AstronautsSaved++;
+                }
+            };
+            astronautTimer.Start();
+        }
+
+        
     }
 }   
 

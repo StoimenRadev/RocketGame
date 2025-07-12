@@ -21,48 +21,47 @@ namespace RocketGame
 
         private void StatisticsForm_Load(object sender, EventArgs e)
         {
-            Label gamesPlayedLabel = new Label
-            {
-                Text = $"Games Played: {Statistics.GamesPlayed}",
-                Font = new Font("Arial", 24, FontStyle.Bold),
-                BackColor = Color.Transparent,
-                ForeColor = Color.White,
-                Location = new Point(650, 50),
-                AutoSize = true
-            };
+            int centerX = this.ClientSize.Width / 2;
 
-            Label highestScoreLabel = new Label
-            {
-                Text = $"Highest Score: {Statistics.HighestScore}",
-                Font = new Font("Arial", 24, FontStyle.Bold),
-                BackColor = Color.Transparent,
-                ForeColor = Color.White,
-                Location = new Point(650, 120),
-                AutoSize = true
-            };
+            // Define label texts and spacing
+            string[] texts = {
+        $"Games Played: {Statistics.GamesPlayed}",
+        $"Highest Score: {Statistics.HighestScore}",
+        $"UFOs Destroyed: {Statistics.TotalUFOsDestroyed}",
+        $"Astronauts Saved: {Statistics.AstronautsSaved}"
+    };
 
-            Label ufosDestroyedLabel = new Label
-            {
-                Text = $"UFOs Destroyed: {Statistics.TotalUFOsDestroyed}",
-                Font = new Font("Arial", 24, FontStyle.Bold),
-                BackColor = Color.Transparent,
-                ForeColor = Color.White,
-                Location = new Point(650, 190),
-                AutoSize = true
-            };
+            int verticalSpacing = 20;
+            Font labelFont = new Font("Arial", 24, FontStyle.Bold);
 
+            // Calculate total height of all labels + spacing
+            int totalHeight = texts.Length * labelFont.Height + (texts.Length - 1) * verticalSpacing;
+            int startY = (this.ClientSize.Height - totalHeight) / 2;
+
+            // Create and position labels
+            for (int i = 0; i < texts.Length; i++)
+            {
+                Label label = new Label
+                {
+                    Text = texts[i],
+                    Font = labelFont,
+                    BackColor = Color.Transparent,
+                    ForeColor = Color.White,
+                    AutoSize = true
+                };
+                label.Location = new Point(centerX - label.PreferredWidth / 2, startY + i * (labelFont.Height + verticalSpacing));
+                this.Controls.Add(label);
+            }
+
+            // ESC message
             Label backLabel = new Label
             {
                 Text = "Press ESC to go back",
                 Font = new Font("Arial", 18, FontStyle.Italic),
                 ForeColor = Color.Gray,
-                Location = new Point(650, 300),
                 AutoSize = true
             };
-
-            this.Controls.Add(gamesPlayedLabel);
-            this.Controls.Add(highestScoreLabel);
-            this.Controls.Add(ufosDestroyedLabel);
+            backLabel.Location = new Point(centerX - backLabel.PreferredWidth / 2, startY + texts.Length * (labelFont.Height + verticalSpacing));
             this.Controls.Add(backLabel);
 
             this.KeyDown += (s, eArgs) =>
@@ -73,8 +72,11 @@ namespace RocketGame
                     this.Hide();
                 }
             };
+
             this.KeyPreview = true;
         }
+
+
     }
 
     public static class Statistics
@@ -82,12 +84,14 @@ namespace RocketGame
         public static int GamesPlayed = 0;
         public static int HighestScore = 0;
         public static int TotalUFOsDestroyed = 0;
+        public static int AstronautsSaved = 0;  // ✅ New field
 
         private static string savePath = "stats.txt";
 
         public static void Save()
         {
-            System.IO.File.WriteAllText(savePath, $"{GamesPlayed},{HighestScore},{TotalUFOsDestroyed}");
+            // Save all 4 stats
+            System.IO.File.WriteAllText(savePath, $"{GamesPlayed},{HighestScore},{TotalUFOsDestroyed},{AstronautsSaved}");
         }
 
         public static void Load()
@@ -95,14 +99,13 @@ namespace RocketGame
             if (System.IO.File.Exists(savePath))
             {
                 string[] data = System.IO.File.ReadAllText(savePath).Split(',');
-                if (data.Length == 3)
+                if (data.Length == 4)
                 {
                     GamesPlayed = int.Parse(data[0]);
                     HighestScore = int.Parse(data[1]);
                     TotalUFOsDestroyed = int.Parse(data[2]);
+                    AstronautsSaved = int.Parse(data[3]);
                 }
-
-
             }
         }
     }
