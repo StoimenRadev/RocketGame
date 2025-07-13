@@ -49,7 +49,7 @@ namespace RocketGame
         int astronautsSaved = 0;
 
 
-        private Timer shieldTimer; // Timer for the shield
+        private Timer shieldTimer;
         private bool shieldActive = false;
         private int ufoDestroyedThisGame;
 
@@ -65,7 +65,7 @@ namespace RocketGame
 
             maxHeight = this.ClientSize.Height;
 
-            astronautSpawnTimer = new Timer { Interval = 30000 }; // 30 seconds interval
+            astronautSpawnTimer = new Timer { Interval = 30000 };
             astronautSpawnTimer.Tick += AstronautSpawnTimer_Tick;
             astronautSpawnTimer.Start();
 
@@ -76,7 +76,7 @@ namespace RocketGame
             asteroidSpawnTimer = new Timer { Interval = 1000 };
             asteroidSpawnTimer.Tick += AsteroidSpawnTimer_Tick;
 
-            shieldTimer = new Timer { Interval = 7000 }; // 1 second interval
+            shieldTimer = new Timer { Interval = 3000 };
             shieldTimer.Tick += ShieldTimer_Tick;
 
             this.Load += GameScreen_Load;
@@ -260,7 +260,7 @@ namespace RocketGame
         private void UfoMovementTimer_Tick(object sender, EventArgs e)
         {
             if (ufo != null && ufo.Left > this.ClientSize.Width - 500)
-                ufo.Left -= 5;
+                ufo.Left -= 4;
             else
                 ufoMovementTimer.Stop();
         }
@@ -284,7 +284,7 @@ namespace RocketGame
                 var laserTimer = new Timer { Interval = 16 };
                 laserTimer.Tick += (s, args) =>
                 {
-                    ufoLaser.Left -= 100;
+                    ufoLaser.Left -= 120;
                     if (ufoLaser.Right < 0)
                     {
                         laserTimer.Stop();
@@ -307,6 +307,8 @@ namespace RocketGame
                 if (c.Tag as string == "ufoLaser" && rocket.Bounds.IntersectsWith(c.Bounds))
                 {
                     SimulateHeartClick();
+                    CreateLaserExplosion(c.Location);
+                    c.Visible = false;
                 }
             }
 
@@ -316,6 +318,7 @@ namespace RocketGame
                 {
                     asteroid.Visible = false;
                     SimulateHeartClick();
+                    CreateAsteroidExplosion(asteroid.Location);
                     break;
                 }
             }
@@ -326,11 +329,17 @@ namespace RocketGame
                 {
                     score += 10;
                     scoreLabel.Text = $"Score: {score}";
+
+                    // UFO explosion when hit by laser
+                    CreateUFOExplosion(ufo.Location);
+
+                    // Remove UFO and laser
                     Controls.Remove(ufo);
                     ufo.Dispose();
                     ufo = null;
                     ufoAlive = false;
                     ufoShootingTimer.Stop();
+
                     Controls.Remove(laser);
                     lasers.Remove(laser);
                     laser.Dispose();
@@ -339,10 +348,86 @@ namespace RocketGame
                 }
             }
         }
+        private void CreateUFOExplosion(Point location)
+        {
+            PictureBox explosion = new PictureBox
+            {
+                Size = new Size(100, 100),
+                BackColor = Color.Transparent,
+                Image = Properties.Resources.big_explosion_removebg_preview,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Location = location
+            };
+
+            explosion.BringToFront();
+            Controls.Add(explosion);
+
+            Timer explosionTimer = new Timer { Interval = 2500 };
+            explosionTimer.Tick += (sender, e) =>
+            {
+                explosionTimer.Stop();
+                Controls.Remove(explosion);
+                explosion.Dispose();
+            };
+            explosionTimer.Start();
+        }
+
+
+        private void CreateAsteroidExplosion(Point location)
+        {
+            PictureBox explosion = new PictureBox
+            {
+                Size = new Size(100, 94),
+                BackColor = Color.Transparent,
+                Image = Properties.Resources.big_explosion_removebg_preview, 
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Location = location
+            };
+
+            explosion.BringToFront();
+            Controls.Add(explosion);
+
+            Timer explosionTimer = new Timer { Interval = 2500 };
+            explosionTimer.Tick += (sender, e) =>
+            {
+                explosionTimer.Stop();
+                Controls.Remove(explosion);
+                explosion.Dispose();
+            };
+            explosionTimer.Start();
+        }
+
+        private void CreateLaserExplosion(Point location)
+        {
+            PictureBox explosion = new PictureBox
+            {
+                Size = new Size(150, 150),
+                BackColor = Color.Transparent,
+                Image = Properties.Resources.small_explosion_removebg_preview,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Location = location
+            };
+
+            explosion.BringToFront();
+            Controls.Add(explosion);
+
+            Timer explosionTimer = new Timer { Interval = 2500 };
+            explosionTimer.Tick += (sender, e) =>
+            {
+                explosionTimer.Stop();
+                Controls.Remove(explosion);
+                explosion.Dispose();
+            };
+            explosionTimer.Start();
+        }
+
+
+
+
+
 
         private void EndGame()
         {
-            // Stop all active timers
             asteroidMovementTimer.Stop();
             asteroidSpawnTimer.Stop();
             laserTimer.Stop();
@@ -352,26 +437,19 @@ namespace RocketGame
             ufoShootingTimer.Stop();
             shieldTimer.Stop();
 
-            // Reset rocket position and dispose any remaining objects
             ResetRocket();
             Statistics.GamesPlayed++;
 
-            // Update the highest score if the current score is higher
             if (score > Statistics.HighestScore)
                 Statistics.HighestScore = score;
 
-            // Update the total UFOs destroyed counter
             Statistics.TotalUFOsDestroyed += ufoDestroyedThisGame;
 
-            // Save statistics to file or database
             Statistics.Save();
 
-            // Show the game over screen
             GameOver go = new GameOver();
             go.Show();
-
-            // Close the current form and stop the game
-            this.Close(); // This will close the Form1 window entirely
+            this.Close();
         }
 
 
@@ -466,7 +544,7 @@ namespace RocketGame
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            // Initialize anything that should be set when the form loads
+
         }
 
         private void pictureBox9_Click(object sender, EventArgs e)
@@ -649,8 +727,6 @@ namespace RocketGame
             {
                 score++;
                 scoreLabel.Text = $"Score: {score}";
-
-                // Spawn astronaut when score is 50
                 if (score == 50)
                 {
                     SpawnAstronaut();
@@ -662,24 +738,22 @@ namespace RocketGame
 
         private void SpawnAstronaut()
         {
-            // Create astronaut object
             PictureBox astronaut = new PictureBox
             {
                 Size = new Size(70, 70),
                 BackColor = Color.Transparent,
-                Image = Properties.Resources.astronaut_removebg_preview, // Replace with your astronaut image
+                Image = Properties.Resources.astronaut_removebg_preview,
                 SizeMode = PictureBoxSizeMode.StretchImage,
-                Location = new Point(ClientSize.Width, rand.Next(scoreLabelHeight + 100, ClientSize.Height - 100)) // Random vertical position
+                Location = new Point(ClientSize.Width, rand.Next(scoreLabelHeight + 100, ClientSize.Height - 100))
             };
 
             astronaut.BringToFront();
             Controls.Add(astronaut);
 
-            // Set the movement of astronaut (move left)
-            Timer astronautTimer = new Timer { Interval = 16 }; // 60 FPS movement
+            Timer astronautTimer = new Timer { Interval = 16 };
             astronautTimer.Tick += (sender, e) =>
             {
-                astronaut.Left -= 20; 
+                astronaut.Left -= 40; 
                 astronaut.Invalidate();
 
                 if (astronaut.Left < -astronaut.Width)

@@ -54,9 +54,14 @@ namespace RocketGame
 
         private void button5_Click(object sender, EventArgs e)
         {
-            Form optionsForm = new OptionsForm();
+            Form optionsForm = new ControlsForm();
             optionsForm.Show();
             this.Hide();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 

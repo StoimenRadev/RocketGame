@@ -163,6 +163,16 @@ namespace RocketGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap big_explosion_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("big-explosion-removebg-preview", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap gameover_background {
             get {
                 object obj = ResourceManager.GetObject("gameover-background", resourceCulture);
@@ -226,6 +236,16 @@ namespace RocketGame.Properties {
         internal static System.Drawing.Bitmap main_menu {
             get {
                 object obj = ResourceManager.GetObject("main-menu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap small_explosion_removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("small-explosion-removebg-preview", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

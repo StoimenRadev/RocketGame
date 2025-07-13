@@ -16,7 +16,9 @@ namespace RocketGame
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainMenu());
+
+            MusicManager.Start();
+            Application.Run(new MainMenu()); 
         }
     }
 }

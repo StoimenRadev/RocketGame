@@ -31,8 +31,8 @@ namespace RocketGame
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Form optionsForm = new OptionsForm();
-            optionsForm.Show();
+            Form mainMenu = new MainMenu();
+            mainMenu.Show();
             this.Hide();
         }
 
